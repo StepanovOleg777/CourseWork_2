@@ -8,16 +8,7 @@ class Vacancy:
 
     def __init__(self, name: str, url: str, salary: Optional[Dict[str, Any]],
                  description: str, requirements: str):
-        """
-        Инициализация вакансии с валидацией данных
-
-        Args:
-            name: Название вакансии
-            url: Ссылка на вакансию
-            salary: Информация о зарплате
-            description: Описание вакансии
-            requirements: Требования
-        """
+        """Инициализация вакансии с валидацией данных"""
         self._name = self._validate_name(name)
         self._url = self._validate_url(url)
         self._salary = self._validate_salary(salary)
@@ -101,7 +92,7 @@ class Vacancy:
             return 0
 
     def __str__(self) -> str:
-        """Человекочитаемое представление вакансии"""
+        """Читаемое представление вакансии"""
         salary_info = self._get_salary_info()
 
         return (f"Вакансия: {self._name}\n"
@@ -111,7 +102,7 @@ class Vacancy:
                 f"Требования: {self._requirements[:100]}...")
 
     def _get_salary_info(self) -> str:
-        """Получить информацию о зарплате в читаемом формате"""
+        """Получение информации о зарплате в читаемом формате"""
         if self.avg_salary == 0:
             return "Зарплата не указана"
 
@@ -129,7 +120,7 @@ class Vacancy:
             return "Зарплата не указана"
 
     def to_dict(self) -> Dict[str, Any]:
-        """Преобразовать вакансию в словарь для сохранения"""
+        """Преобразование вакансии в словарь для сохранения"""
         return {
             "name": self._name,
             "url": self._url,
@@ -169,15 +160,7 @@ class Vacancy:
 
     @classmethod
     def cast_to_object_list(cls, vacancies_data: List[Dict[str, Any]]) -> List['Vacancy']:
-        """
-        Преобразовать список словарей в список объектов Vacancy
-
-        Args:
-            vacancies_data: Список вакансий в формате API
-
-        Returns:
-            List[Vacancy]: Список объектов Vacancy
-        """
+        """Преобразование списка словарей в список объектов Vacancy"""
         vacancies = []
         for vacancy_data in vacancies_data:
             try:

@@ -66,29 +66,12 @@ def get_vacancies_by_salary(vacancies: List[Vacancy], salary_range: str) -> List
 
 
 def sort_vacancies(vacancies: List[Vacancy]) -> List[Vacancy]:
-    """
-    Отсортировать вакансии по убыванию зарплаты
-
-    Args:
-        vacancies: Список вакансий для сортировки
-
-    Returns:
-        List[Vacancy]: Отсортированный список вакансий
-    """
+    """Сортировка вакансий по убыванию зарплаты"""
     return sorted(vacancies, key=lambda x: x.avg_salary, reverse=True)
 
 
 def get_top_vacancies(vacancies: List[Vacancy], top_n: int) -> List[Vacancy]:
-    """
-    Получить топ N вакансий по зарплате
-
-    Args:
-        vacancies: Список вакансий
-        top_n: Количество вакансий для возврата
-
-    Returns:
-        List[Vacancy]: Топ N вакансий
-    """
+    """Получение топ N вакансий по зарплате"""
     if not vacancies or top_n <= 0:
         return []
 

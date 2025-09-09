@@ -8,31 +8,11 @@ class API(ABC):
 
     @abstractmethod
     def get_vacancies(self, query: str) -> List[Dict[str, Any]]:
-        """
-        Получить вакансии по поисковому запросу
-
-        Args:
-            query: Поисковый запрос
-
-        Returns:
-            List[Dict[str, Any]]: Список вакансий в формате словарей
-        """
+        """Получение вакансий по поисковому запросу"""
         pass
 
     def _make_request(self, url: str, params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Выполнить HTTP-запрос к API (приватный метод)
-
-        Args:
-            url: URL для запроса
-            params: Параметры запроса
-
-        Returns:
-            Dict[str, Any]: Ответ API
-
-        Raises:
-            Exception: Если запрос не удался
-        """
+        """Выполнить HTTP-запрос к API (приватный метод)"""
         try:
             response = requests.get(url, params=params, timeout=10)
             response.raise_for_status()  # Проверка статус-кода

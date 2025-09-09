@@ -3,12 +3,7 @@ from src.models.vacancy import Vacancy
 
 
 def print_vacancies(vacancies: List[Vacancy]) -> None:
-    """
-    Вывести вакансии в удобочитаемом формате
-
-    Args:
-        vacancies: Список вакансий для вывода
-    """
+    """Вывести вакансии в удобочитаемом формате"""
     if not vacancies:
         print("Вакансии не найдены")
         return
@@ -21,12 +16,7 @@ def print_vacancies(vacancies: List[Vacancy]) -> None:
 
 
 def print_vacancy_details(vacancy: Vacancy) -> None:
-    """
-    Вывести подробную информацию о вакансии
-
-    Args:
-        vacancy: Вакансия для вывода
-    """
+    """Вывести подробную информацию о вакансии"""
     print(f"\n=== Детальная информация ===")
     print(f"Название: {vacancy.name}")
     print(f"Ссылка: {vacancy.url}")

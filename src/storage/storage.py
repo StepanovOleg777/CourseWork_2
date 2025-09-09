@@ -8,26 +8,26 @@ class Storage(ABC):
 
     @abstractmethod
     def add_vacancy(self, vacancy: Vacancy) -> None:
-        """Добавить вакансию в файл"""
+        """Добавление вакансию в файл"""
         pass
 
     @abstractmethod
     def get_vacancies(self, criteria: Dict[str, Any] = None) -> List[Dict[str, Any]]:
-        """Получить вакансии по критериям"""
+        """Получение вакансии по критериям"""
         pass
 
     @abstractmethod
     def delete_vacancy(self, vacancy: Vacancy) -> None:
-        """Удалить вакансию из файла"""
+        """Удаление вакансии из файла"""
         pass
 
     # Методы для будущей интеграции с БД (заглушки)
     @abstractmethod
     def add_vacancies(self, query: str, vacancies: List[Vacancy]) -> None:
-        """Добавить вакансии по запросу (для будущего использования)"""
+        """Добавление вакансии по запросу (для будущего использования)"""
         pass
 
     @abstractmethod
     def get_vacancies_by_query(self, query: str) -> List[Dict[str, Any]]:
-        """Получить вакансии по запросу (для будущего использования)"""
+        """Получение вакансий по запросу (для будущего использования)"""
         pass

@@ -13,13 +13,13 @@ class JSONSaver(Storage):
         self._ensure_file_exists()
 
     def _ensure_file_exists(self) -> None:
-        """Создать файл, если он не существует"""
+        """Создание файла, если он не существует"""
         if not os.path.exists(self._filename):
             with open(self._filename, 'w', encoding='utf-8') as f:
                 json.dump([], f, ensure_ascii=False, indent=2)
 
     def _read_vacancies(self) -> List[Dict[str, Any]]:
-        """Прочитать вакансии из файла"""
+        """Чтение вакансий из файла"""
         try:
             with open(self._filename, 'r', encoding='utf-8') as f:
                 return json.load(f)
@@ -27,17 +27,12 @@ class JSONSaver(Storage):
             return []
 
     def _write_vacancies(self, vacancies: List[Dict[str, Any]]) -> None:
-        """Записать вакансии в файл"""
+        """Запись вакансии в файл"""
         with open(self._filename, 'w', encoding='utf-8') as f:
             json.dump(vacancies, f, ensure_ascii=False, indent=2)
 
     def add_vacancy(self, vacancy: Vacancy) -> None:
-        """
-        Добавить вакансию в файл (не сохраняет дубликаты)
-
-        Args:
-            vacancy: Объект вакансии для добавления
-        """
+        """Добавление вакансий в файл (не сохраняет дубликаты)"""
         vacancies = self._read_vacancies()
         vacancy_dict = vacancy.to_dict()
 
@@ -50,15 +45,7 @@ class JSONSaver(Storage):
             print("Вакансия уже существует в файле")
 
     def get_vacancies(self, criteria: Dict[str, Any] = None) -> List[Dict[str, Any]]:
-        """
-        Получить вакансии по критериям
-
-        Args:
-            criteria: Словарь с критериями фильтрации
-
-        Returns:
-            List[Dict[str, Any]]: Отфильтрованный список вакансий
-        """
+        """Получение вакансий по критериям"""
         vacancies = self._read_vacancies()
 
         if not criteria:
@@ -92,12 +79,7 @@ class JSONSaver(Storage):
         return filtered_vacancies
 
     def delete_vacancy(self, vacancy: Vacancy) -> None:
-        """
-        Удалить вакансию из файла
-
-        Args:
-            vacancy: Объект вакансии для удаления
-        """
+        """Удаление вакансий из файла"""
         vacancies = self._read_vacancies()
         original_count = len(vacancies)
 
@@ -112,10 +94,10 @@ class JSONSaver(Storage):
 
     # Заглушки для будущей интеграции
     def add_vacancies(self, query: str, vacancies: List[Vacancy]) -> None:
-        """Добавить вакансии по запросу (заглушка для будущего использования)"""
+        """Добавление вакансий по запросу (заглушка для будущего использования)"""
         for vacancy in vacancies:
             self.add_vacancy(vacancy)
 
     def get_vacancies_by_query(self, query: str) -> List[Dict[str, Any]]:
-        """Получить вакансии по запросу (заглушка для будущего использования)"""
+        """Получение вакансий по запросу (заглушка для будущего использования)"""
         return self.get_vacancies({'keyword': query})

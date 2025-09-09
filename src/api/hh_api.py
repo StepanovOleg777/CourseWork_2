@@ -9,15 +9,7 @@ class HeadHunterAPI(API):
         self._base_url = "https://api.hh.ru/vacancies"
 
     def get_vacancies(self, query: str) -> List[Dict[str, Any]]:
-        """
-        Получить вакансии с HeadHunter по поисковому запросу
-
-        Args:
-            query: Поисковый запрос
-
-        Returns:
-            List[Dict[str, Any]]: Список вакансий
-        """
+        """Получение вакансий с HeadHunter по поисковому запросу"""
         params = {
             "text": query,
             "area": 113,  # Россия
