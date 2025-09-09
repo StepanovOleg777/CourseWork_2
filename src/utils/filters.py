@@ -1,12 +1,5 @@
-# Убираем относительные импорты, используем абсолютные
-import sys
-import os
-
-# Добавляем src в путь для импортов
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-
+from typing import List, Optional
 from src.models.vacancy import Vacancy
-from typing import List
 
 
 def filter_vacancies(vacancies: List[Vacancy], filter_words: List[str]) -> List[Vacancy]:
@@ -15,7 +8,7 @@ def filter_vacancies(vacancies: List[Vacancy], filter_words: List[str]) -> List[
 
     Args:
         vacancies: Список вакансий
-        filter_words: Список ключевых слов
+        filter_words: Список ключевых слов для фильтрации
 
     Returns:
         List[Vacancy]: Отфильтрованный список вакансий
@@ -25,8 +18,11 @@ def filter_vacancies(vacancies: List[Vacancy], filter_words: List[str]) -> List[
 
     filtered = []
     for vacancy in vacancies:
+        # Объединяем описание и требования для поиска
         text = f"{vacancy.description} {vacancy.requirements}".lower()
-        if any(word.lower() in text for word in filter_words if word):
+
+        # Проверяем наличие всех ключевых слов
+        if all(word.lower() in text for word in filter_words if word.strip()):
             filtered.append(vacancy)
 
     return filtered
@@ -38,7 +34,7 @@ def get_vacancies_by_salary(vacancies: List[Vacancy], salary_range: str) -> List
 
     Args:
         vacancies: Список вакансий
-        salary_range: Диапазон зарплат (формат: "100000-150000")
+        salary_range: Диапазон зарплат в формате "100000-150000"
 
     Returns:
         List[Vacancy]: Отфильтрованный список вакансий
@@ -47,13 +43,17 @@ def get_vacancies_by_salary(vacancies: List[Vacancy], salary_range: str) -> List
         return vacancies
 
     try:
-        # Обработка разных форматов ввода
-        if '-' in salary_range:
-            min_salary, max_salary = map(int, salary_range.split('-'))
+        # Парсим диапазон зарплат
+        range_parts = salary_range.replace(' ', '').split('-')
+        if len(range_parts) == 2:
+            min_salary = int(range_parts[0])
+            max_salary = int(range_parts[1])
         else:
-            min_salary = int(salary_range)
+            # Если указана одна цифра, ищем вакансии с зарплатой выше
+            min_salary = int(range_parts[0])
             max_salary = float('inf')
     except ValueError:
+        print("Некорректный формат диапазона зарплат. Используйте формат: 100000-150000")
         return vacancies
 
     filtered = []
@@ -67,10 +67,10 @@ def get_vacancies_by_salary(vacancies: List[Vacancy], salary_range: str) -> List
 
 def sort_vacancies(vacancies: List[Vacancy]) -> List[Vacancy]:
     """
-    Сортировать вакансии по убыванию зарплаты
+    Отсортировать вакансии по убыванию зарплаты
 
     Args:
-        vacancies: Список вакансий
+        vacancies: Список вакансий для сортировки
 
     Returns:
         List[Vacancy]: Отсортированный список вакансий
@@ -80,7 +80,7 @@ def sort_vacancies(vacancies: List[Vacancy]) -> List[Vacancy]:
 
 def get_top_vacancies(vacancies: List[Vacancy], top_n: int) -> List[Vacancy]:
     """
-    Получить топ N вакансий
+    Получить топ N вакансий по зарплате
 
     Args:
         vacancies: Список вакансий
@@ -89,20 +89,7 @@ def get_top_vacancies(vacancies: List[Vacancy], top_n: int) -> List[Vacancy]:
     Returns:
         List[Vacancy]: Топ N вакансий
     """
-    return vacancies[:top_n] if top_n > 0 else vacancies
+    if not vacancies or top_n <= 0:
+        return []
 
-
-def print_vacancies(vacancies: List[Vacancy]) -> None:
-    """
-    Вывести вакансии в читаемом формате
-
-    Args:
-        vacancies: Список вакансий для вывода
-    """
-    if not vacancies:
-        print("Вакансии не найдены.")
-        return
-
-    for i, vacancy in enumerate(vacancies, 1):
-        print(f"\n{i}. {vacancy}")
-        print("-" * 50)
+    return vacancies[:top_n]

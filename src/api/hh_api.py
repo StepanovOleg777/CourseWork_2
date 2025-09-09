@@ -1,23 +1,34 @@
-from typing import Dict, List, Any
-from .base_api import BaseAPI
+from typing import List, Dict, Any
+from src.api.api import API
 
 
-class HeadHunterAPI(BaseAPI):
+class HeadHunterAPI(API):
     """Класс для работы с API HeadHunter"""
 
     def __init__(self):
-        super().__init__("https://api.hh.ru/vacancies")
+        self._base_url = "https://api.hh.ru/vacancies"
 
-    def get_vacancies(self, search_query: str, per_page: int = 100) -> List[Dict[str, Any]]:
-        """Получение вакансий с hh.ru по поисковому запросу"""
+    def get_vacancies(self, query: str) -> List[Dict[str, Any]]:
+        """
+        Получить вакансии с HeadHunter по поисковому запросу
+
+        Args:
+            query: Поисковый запрос
+
+        Returns:
+            List[Dict[str, Any]]: Список вакансий
+        """
         params = {
-            "text": search_query,
-            "per_page": per_page,
+            "text": query,
             "area": 113,  # Россия
-            "only_with_salary": True
+            "per_page": 100,
+            "page": 0
         }
 
-        response = self._connect_to_api(self.base_url, params)
-        data = response.json()
-
-        return data.get("items", [])
+        try:
+            # Используем приватный метод из абстрактного класса
+            data = self._make_request(self._base_url, params)
+            return data.get("items", [])
+        except Exception as e:
+            print(f"Ошибка при получении вакансий с HH: {e}")
+            return []

@@ -1,6 +1,4 @@
-from __future__ import annotations
-from typing import Dict, Any, List
-import re
+from typing import Dict, Optional, List, Any
 
 
 class Vacancy:
@@ -8,13 +6,23 @@ class Vacancy:
 
     __slots__ = ('_name', '_url', '_salary', '_description', '_requirements')
 
-    def __init__(self, name: str, url: str, salary: Dict[str, Any],
-                 description: str, requirements: str = ""):
+    def __init__(self, name: str, url: str, salary: Optional[Dict[str, Any]],
+                 description: str, requirements: str):
+        """
+        Инициализация вакансии с валидацией данных
+
+        Args:
+            name: Название вакансии
+            url: Ссылка на вакансию
+            salary: Информация о зарплате
+            description: Описание вакансии
+            requirements: Требования
+        """
         self._name = self._validate_name(name)
         self._url = self._validate_url(url)
         self._salary = self._validate_salary(salary)
-        self._description = self._validate_description(description)
-        self._requirements = self._validate_requirements(requirements)
+        self._description = self._validate_text(description, "описание")
+        self._requirements = self._validate_text(requirements, "требования")
 
     def _validate_name(self, name: str) -> str:
         """Валидация названия вакансии"""
@@ -30,120 +38,98 @@ class Vacancy:
             raise ValueError("Некорректный URL вакансии")
         return url
 
-    def _validate_salary(self, salary: Dict[str, Any]) -> Dict[str, Any]:
-        """Валидация данных о зарплате"""
-        if not salary:
-            return {"from": 0, "to": 0, "currency": "RUR"}
+    def _validate_salary(self, salary: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        """Валидация зарплаты"""
+        if salary is None:
+            return {"from": 0, "to": 0, "currency": "RUB"}
+
+        # Валидация числовых значений зарплаты
+        salary_from = salary.get("from")
+        salary_to = salary.get("to")
 
         validated_salary = {
-            "from": salary.get("from", 0) or 0,
-            "to": salary.get("to", 0) or 0,
-            "currency": salary.get("currency", "RUR") or "RUR"
+            "from": salary_from if isinstance(salary_from, (int, float)) and salary_from > 0 else 0,
+            "to": salary_to if isinstance(salary_to, (int, float)) and salary_to > 0 else 0,
+            "currency": salary.get("currency", "RUB") or "RUB"
         }
-
         return validated_salary
 
-    def _validate_description(self, description: str) -> str:
-        """Валидация описания вакансии"""
-        if not description or not isinstance(description, str):
-            return "Описание отсутствует"
-        return description.strip()
-
-    def _validate_requirements(self, requirements: str) -> str:
-        """Валидация требований вакансии"""
-        if not requirements or not isinstance(requirements, str):
-            return "Требования отсутствуют"
-        return requirements.strip()
+    def _validate_text(self, text: str, field_name: str) -> str:
+        """Валидация текстовых полей"""
+        if not text or not isinstance(text, str):
+            return "Не указано"
+        return text.strip()
 
     @property
     def name(self) -> str:
+        """Название вакансии"""
         return self._name
 
     @property
     def url(self) -> str:
+        """URL вакансии"""
         return self._url
 
     @property
     def salary(self) -> Dict[str, Any]:
+        """Информация о зарплате"""
         return self._salary
 
     @property
     def description(self) -> str:
+        """Описание вакансии"""
         return self._description
 
     @property
     def requirements(self) -> str:
+        """Требования к вакансии"""
         return self._requirements
 
     @property
-    def avg_salary(self) -> float:
-        """Средняя зарплата"""
-        from_val = self._salary["from"] or 0
-        to_val = self._salary["to"] or 0
+    def avg_salary(self) -> int:
+        """Средняя зарплата для сравнения"""
+        salary_from = self._salary.get("from", 0) or 0
+        salary_to = self._salary.get("to", 0) or 0
 
-        if from_val and to_val:
-            return (from_val + to_val) / 2
-        elif from_val:
-            return from_val
-        elif to_val:
-            return to_val
+        if salary_from and salary_to:
+            return (salary_from + salary_to) // 2
+        elif salary_from:
+            return salary_from
+        elif salary_to:
+            return salary_to
         else:
-            return 0.0
+            return 0
 
     def __str__(self) -> str:
-        salary_info = self._format_salary()
+        """Человекочитаемое представление вакансии"""
+        salary_info = self._get_salary_info()
+
         return (f"Вакансия: {self._name}\n"
                 f"Ссылка: {self._url}\n"
                 f"Зарплата: {salary_info}\n"
                 f"Описание: {self._description[:100]}...\n"
                 f"Требования: {self._requirements[:100]}...")
 
-    def _format_salary(self) -> str:
-        """Форматирование информации о зарплате"""
-        if not self._salary["from"] and not self._salary["to"]:
+    def _get_salary_info(self) -> str:
+        """Получить информацию о зарплате в читаемом формате"""
+        if self.avg_salary == 0:
             return "Зарплата не указана"
 
-        from_val = self._salary["from"]
-        to_val = self._salary["to"]
-        currency = self._salary["currency"]
+        salary_from = self._salary.get("from", 0)
+        salary_to = self._salary.get("to", 0)
+        currency = self._salary.get("currency", "RUB")
 
-        if from_val and to_val:
-            return f"{from_val:,} - {to_val:,} {currency}"
-        elif from_val:
-            return f"от {from_val:,} {currency}"
-        elif to_val:
-            return f"до {to_val:,} {currency}"
+        if salary_from and salary_to:
+            return f"{salary_from} - {salary_to} {currency}"
+        elif salary_from:
+            return f"от {salary_from} {currency}"
+        elif salary_to:
+            return f"до {salary_to} {currency}"
         else:
             return "Зарплата не указана"
 
-    # Методы сравнения
-    def __eq__(self, other: Vacancy) -> bool:
-        if not isinstance(other, Vacancy):
-            return NotImplemented
-        return self.avg_salary == other.avg_salary
-
-    def __lt__(self, other: Vacancy) -> bool:
-        if not isinstance(other, Vacancy):
-            return NotImplemented
-        return self.avg_salary < other.avg_salary
-
-    def __le__(self, other: Vacancy) -> bool:
-        if not isinstance(other, Vacancy):
-            return NotImplemented
-        return self.avg_salary <= other.avg_salary
-
-    def __gt__(self, other: Vacancy) -> bool:
-        if not isinstance(other, Vacancy):
-            return NotImplemented
-        return self.avg_salary > other.avg_salary
-
-    def __ge__(self, other: Vacancy) -> bool:
-        if not isinstance(other, Vacancy):
-            return NotImplemented
-        return self.avg_salary >= other.avg_salary
-
     def to_dict(self) -> Dict[str, Any]:
-        """Преобразование в словарь"""
+        """Преобразовать вакансию в словарь для сохранения"""
         return {
             "name": self._name,
             "url": self._url,
@@ -152,30 +138,64 @@ class Vacancy:
             "requirements": self._requirements
         }
 
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> Vacancy:
-        """Создание объекта из словаря"""
-        return cls(
-            name=data["name"],
-            url=data["url"],
-            salary=data["salary"],
-            description=data["description"],
-            requirements=data.get("requirements", "")
-        )
+    # Методы сравнения по зарплате
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, Vacancy):
+            return NotImplemented
+        return self.avg_salary == other.avg_salary
+
+    def __lt__(self, other) -> bool:
+        if not isinstance(other, Vacancy):
+            return NotImplemented
+
+        # Вакансии без зарплаты считаются меньшими
+        if self.avg_salary == 0 and other.avg_salary == 0:
+            return False
+        if self.avg_salary == 0:
+            return True
+        if other.avg_salary == 0:
+            return False
+
+        return self.avg_salary < other.avg_salary
+
+    def __le__(self, other) -> bool:
+        return self < other or self == other
+
+    def __gt__(self, other) -> bool:
+        return not self <= other
+
+    def __ge__(self, other) -> bool:
+        return not self < other
 
     @classmethod
-    def cast_to_object_list(cls, vacancies_data: List[Dict[str, Any]]) -> List[Vacancy]:
-        """Преобразование списка словарей в список объектов Vacancy"""
+    def cast_to_object_list(cls, vacancies_data: List[Dict[str, Any]]) -> List['Vacancy']:
+        """
+        Преобразовать список словарей в список объектов Vacancy
+
+        Args:
+            vacancies_data: Список вакансий в формате API
+
+        Returns:
+            List[Vacancy]: Список объектов Vacancy
+        """
         vacancies = []
         for vacancy_data in vacancies_data:
             try:
-                salary = vacancy_data.get("salary") or {}
+                name = vacancy_data.get('name', 'Без названия')
+                url = vacancy_data.get('alternate_url', '')
+                salary = vacancy_data.get('salary')
+
+                # Извлекаем описание и требования из snippet
+                snippet = vacancy_data.get('snippet', {})
+                description = snippet.get('responsibility', '') or snippet.get('requirement', '')
+                requirements = snippet.get('requirement', '') or description
+
                 vacancy = cls(
-                    name=vacancy_data.get("name", ""),
-                    url=vacancy_data.get("alternate_url", ""),
+                    name=name,
+                    url=url,
                     salary=salary,
-                    description=vacancy_data.get("description", ""),
-                    requirements=vacancy_data.get("snippet", {}).get("requirement", "")
+                    description=description,
+                    requirements=requirements
                 )
                 vacancies.append(vacancy)
             except (ValueError, KeyError) as e:

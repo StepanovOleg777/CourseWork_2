@@ -1,122 +1,78 @@
-import sys
-import os
-
-
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
 from src.api.hh_api import HeadHunterAPI
 from src.models.vacancy import Vacancy
-from src.storage.json_storage import JSONStorage
-from src.utils.filters import filter_vacancies, get_vacancies_by_salary, sort_vacancies, get_top_vacancies, \
-    print_vacancies
+from src.storage.json_saver import JSONSaver
+from src.utils.filters import filter_vacancies, get_vacancies_by_salary, sort_vacancies, get_top_vacancies
+from src.utils.display import print_vacancies, print_vacancy_details
 
 
 def user_interaction():
     """
-    Основная функция взаимодействия с пользователем
+    Функция для взаимодействия с пользователем через консоль
     """
-    print("=== Анализатор вакансий с hh.ru ===")
+    print("=== Парсер вакансий с HeadHunter ===")
+    print("Программа позволяет искать вакансии, фильтровать и сортировать их")
 
-    # Инициализация компонентов
+    # Создаем экземпляры классов
     hh_api = HeadHunterAPI()
-    storage = JSONStorage()
+    json_saver = JSONSaver()
 
-    # Ввод данных от пользователя
-    search_query = input("Введите поисковый запрос: ").strip()
+    # Ввод параметров поиска
+    search_query = input("\nВведите поисковый запрос для запроса вакансий из hh.ru: ").strip()
     if not search_query:
-        print("Поисковый запрос не может быть пустым.")
+        print("Поисковый запрос не может быть пустым!")
         return
 
     try:
-        top_n = int(input("Введите количество вакансий для вывода в топ N: ").strip() or "10")
+        top_n = int(input("Введите количество вакансий для вывода в топ N: "))
+        if top_n <= 0:
+            print("Количество должно быть положительным числом!")
+            return
     except ValueError:
-        print("Некорректное число. Будет использовано значение по умолчанию: 10")
-        top_n = 10
+        print("Некорректное число!")
+        return
 
     filter_words = input("Введите ключевые слова для фильтрации вакансий (через пробел): ").split()
     salary_range = input("Введите диапазон зарплат (например: 100000-150000): ").strip()
 
-    print("\n⏳ Получаем вакансии с hh.ru...")
+    print(f"\nИщу вакансии по запросу: '{search_query}'...")
 
-    try:
-        # Получение вакансий с API
-        vacancies_data = hh_api.get_vacancies(search_query, per_page=50)
-        vacancies = Vacancy.cast_to_object_list(vacancies_data)
+    # Получаем вакансии с API
+    hh_vacancies_data = hh_api.get_vacancies(search_query)
 
-        if not vacancies:
-            print("По вашему запросу вакансий не найдено.")
-            return
+    if not hh_vacancies_data:
+        print("По вашему запросу вакансии не найдены.")
+        return
 
-        # Сохранение в файл
-        for vacancy in vacancies:
-            storage.add_vacancy(vacancy.to_dict())
+    # Преобразуем в объекты
+    vacancies_list = Vacancy.cast_to_object_list(hh_vacancies_data)
+    print(f"Найдено {len(vacancies_list)} вакансий")
 
-        print(f"✅ Получено и сохранено {len(vacancies)} вакансий")
+    # Сохраняем все вакансии
+    for vacancy in vacancies_list:
+        json_saver.add_vacancy(vacancy)
 
-        # Фильтрация и сортировка
-        filtered_vacancies = filter_vacancies(vacancies, filter_words)
-        ranged_vacancies = get_vacancies_by_salary(filtered_vacancies, salary_range)
-        sorted_vacancies = sort_vacancies(ranged_vacancies)
-        top_vacancies = get_top_vacancies(sorted_vacancies, top_n)
+    # Применяем фильтры и сортировку
+    filtered_vacancies = filter_vacancies(vacancies_list, filter_words)
+    ranged_vacancies = get_vacancies_by_salary(filtered_vacancies, salary_range)
+    sorted_vacancies = sort_vacancies(ranged_vacancies)
+    top_vacancies = get_top_vacancies(sorted_vacancies, top_n)
 
-        # Вывод результатов
-        print(f"\n🎯 Топ {len(top_vacancies)} вакансий:")
-        print_vacancies(top_vacancies)
+    # Выводим результаты
+    print_vacancies(top_vacancies)
 
-        # Дополнительная информация
-        print(f"\n📊 Статистика:")
-        print(f"Всего получено: {len(vacancies)} вакансий")
-        print(f"После фильтрации: {len(filtered_vacancies)} вакансий")
-        print(f"После фильтрации по зарплате: {len(ranged_vacancies)} вакансий")
-
-    except Exception as e:
-        print(f"❌ Произошла ошибка: {e}")
-
-
-def additional_features():
-    """
-    Дополнительные функции для работы с сохраненными вакансиями
-    """
-    storage = JSONStorage()
-
-    print("\n=== Дополнительные функции ===")
-    print("1. Показать все сохраненные вакансии")
-    print("2. Поиск по ключевым словам")
-    print("3. Очистить все данные")
-    print("4. Выход")
-
-    choice = input("Выберите опцию (1-4): ").strip()
-
-    if choice == "1":
-        vacancies_data = storage.get_vacancies()
-        vacancies = [Vacancy.from_dict(data) for data in vacancies_data]
-        print_vacancies(vacancies)
-
-    elif choice == "2":
-        keyword = input("Введите ключевое слово для поиска: ").strip()
-        vacancies_data = storage.get_vacancies()
-        vacancies = [Vacancy.from_dict(data) for data in vacancies_data]
-        filtered = filter_vacancies(vacancies, [keyword])
-        print_vacancies(filtered)
-
-    elif choice == "3":
-        confirm = input("Вы уверены, что хотите очистить все данные? (y/n): ").strip().lower()
-        if confirm == 'y':
-            storage.clear_all()
-            print("Все данные очищены.")
-
-    elif choice == "4":
-        print("Выход...")
-
-    else:
-        print("Неверный выбор.")
+    # Дополнительные возможности
+    if top_vacancies:
+        try:
+            choice = input("\nХотите посмотреть детальную информацию о вакансии? (введите номер или 'нет'): ")
+            if choice.lower() != 'нет':
+                vacancy_num = int(choice) - 1
+                if 0 <= vacancy_num < len(top_vacancies):
+                    print_vacancy_details(top_vacancies[vacancy_num])
+                else:
+                    print("Неверный номер вакансии")
+        except ValueError:
+            print("Неверный ввод")
 
 
 if __name__ == "__main__":
-    try:
-        user_interaction()
-        additional_features()
-    except KeyboardInterrupt:
-        print("\n\nПрограмма завершена пользователем.")
-    except Exception as e:
-        print(f"Неожиданная ошибка: {e}")
+    user_interaction()

@@ -19,12 +19,20 @@ def test_vacancy_creation():
 
 def test_vacancy_comparison():
     """Тест сравнения вакансий"""
-    vacancy1 = Vacancy("Dev1", "url1", {"from": 100000}, "desc1", "req1")
-    vacancy2 = Vacancy("Dev2", "url2", {"from": 150000}, "desc2", "req2")
+    # Используем корректные URL
+    vacancy1 = Vacancy("Dev1", "https://hh.ru/vacancy/1", {"from": 100000}, "desc1", "req1")
+    vacancy2 = Vacancy("Dev2", "https://hh.ru/vacancy/2", {"from": 150000}, "desc2", "req2")
+    vacancy3 = Vacancy("Dev3", "https://hh.ru/vacancy/3", {"from": 80000}, "desc3", "req3")
 
-    assert vacancy1 < vacancy2
+    # Тестируем сравнение
     assert vacancy2 > vacancy1
-    assert vacancy1 != vacancy2
+    assert vacancy1 > vacancy3
+    assert vacancy2 >= vacancy1
+    assert vacancy1 <= vacancy2
+
+    # Тестируем равенство (когда зарплаты одинаковые)
+    vacancy4 = Vacancy("Dev4", "https://hh.ru/vacancy/4", {"from": 100000}, "desc4", "req4")
+    assert vacancy1 == vacancy4
 
 
 def test_vacancy_validation():
