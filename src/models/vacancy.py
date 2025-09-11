@@ -10,13 +10,6 @@ class Vacancy:
                  description: str, requirements: str):
         """
         Инициализация вакансии с валидацией данных
-
-        Args:
-            name: Название вакансии
-            url: Ссылка на вакансию
-            salary: Информация о зарплате
-            description: Описание вакансии
-            requirements: Требования
         """
         self.__name = self.__validate_name(name)
         self.__url = self.__validate_url(url)
@@ -169,12 +162,6 @@ class Vacancy:
     def cast_to_object_list(cls, vacancies_data: List[Dict[str, Any]]) -> List['Vacancy']:
         """
         Преобразовать список словарей в список объектов Vacancy
-
-        Args:
-            vacancies_data: Список вакансий в формате API
-
-        Returns:
-            List[Vacancy]: Список объектов Vacancy
         """
         vacancies = []
         for vacancy_data in vacancies_data:
